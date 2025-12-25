@@ -105,10 +105,9 @@ jobs:
       - name: Terraform Destroy
         uses: subhamay-bhattacharyya-gha/tf-destroy-action@feature/GHA-0026-add-multi-cloud-support
         with:
+          cloud-provider: ${{ inputs.cloud-provider }}
           terraform-dir: infra/${{ inputs.cloud-provider }}/tf
           backend-type: ${{ inputs.backend-type }}
           tfc-token: ${{ secrets.tfc-token }}
           aws-region: ${{ inputs.aws-region }}
           aws-role-to-assume: ${{ secrets.aws-role-to-assume }}
-
-
