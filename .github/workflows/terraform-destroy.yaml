@@ -21,6 +21,17 @@ on:
         required: false
         type: string
 
+      # S3 Backend Inputs (required when backend-type is 's3')
+      s3-bucket:
+        description: "S3 bucket name for Terraform state. Required when backend-type is 's3'."
+        required: false
+        type: string
+
+      s3-region:
+        description: "S3 bucket region for Terraform state. Required when backend-type is 's3'."
+        required: false
+        type: string
+
     secrets:
       # HCP Terraform Cloud Secret
       tfc-token:
@@ -53,6 +64,7 @@ on:
       # azure-subscription-id:
       #   description: "Azure subscription ID for authentication. Required when cloud-provider is 'azure'."
       #   required: false
+
 jobs:
   terraform-destroy:
     name: 🔥 Destroy - ${{ inputs.cloud-provider }}
@@ -64,8 +76,39 @@ jobs:
           echo "=== Workflow Inputs ==="
           echo "Cloud Provider: ${{ inputs.cloud-provider }}"
           echo "Backend Type: ${{ inputs.backend-type }}"
-          echo "AWS Region: ${{ inputs.aws-region }}"
-          echo "=== Workflow Secrets ==="
           echo "TFC Token: ${{ secrets.tfc-token && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "AWS Region: ${{ inputs.aws-region }}"
           echo "AWS Role to Assume: ${{ secrets.aws-role-to-assume && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "GCP WIF Provider: ${{ secrets.gcp-wif-provider && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "GCP Service Account: ${{ secrets.gcp-service-account && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Client ID: ${{ secrets.azure-client-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Tenant ID: ${{ secrets.azure-tenant-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Subscription ID: ${{ secrets.azure-subscription-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "======================="
+
+
+      - name: Validate Cloud Provider
+        run: |
+          if [[ "${{ inputs.cloud-provider }}" != "aws" && "${{ inputs.cloud-provider }}" != "gcp" && "${{ inputs.cloud-provider }}" != "azure" ]]; then
+            echo "Error: Invalid cloud provider '${{ inputs.cloud-provider }}'. Must be one of: aws, gcp, azure"
+            exit 1
+          fi
+          echo "Valid cloud provider: ${{ inputs.cloud-provider }}"
+
+      - name: Configure AWS credentials
+        if: inputs.cloud-provider == 'aws'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.aws-role-to-assume }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Terraform Destroy
+        uses: subhamay-bhattacharyya-gha/tf-destroy-action@feature/GHA-0026-add-multi-cloud-support
+        with:
+          terraform-dir: infra/${{ inputs.cloud-provider }}/tf
+          backend-type: ${{ inputs.backend-type }}
+          tfc-token: ${{ secrets.tfc-token }}
+          aws-region: ${{ inputs.aws-region }}
+          aws-role-to-assume: ${{ secrets.aws-role-to-assume }}
+
+
