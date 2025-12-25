@@ -1,0 +1,71 @@
+name: Terraform Multi-Cloud Destroy
+
+on:
+  workflow_call:
+    inputs:
+      cloud-provider:
+        description: "Target cloud provider (aws, gcp, azure)"
+        required: true
+        type: string
+
+      # Backend Type Selection
+      backend-type:
+        description: "Backend type to use: 's3' for AWS S3 or 'remote' for HCP Terraform Cloud."
+        required: false
+        type: string
+        default: "s3"
+
+      # AWS Authentication Inputs
+      aws-region:
+        description: "AWS region for authentication. Required when cloud-provider is 'aws'."
+        required: false
+        type: string
+
+    secrets:
+      # HCP Terraform Cloud Secret
+      tfc-token:
+        description: "HCP Terraform Cloud API token. Required when backend-type is 'remote'."
+        required: false
+
+      # AWS Authentication Secret
+      aws-role-to-assume:
+        description: "AWS IAM role ARN to assume. Required when cloud-provider is 'aws'."
+        required: false
+
+      # GCP Authentication Secrets
+      # gcp-wif-provider:
+      #   description: "GCP Workload Identity Federation provider. Required when cloud-provider is 'gcp'."
+      #   required: false
+
+      # gcp-service-account:
+      #   description: "GCP service account email for authentication. Required when cloud-provider is 'gcp'."
+      #   required: false
+
+      # # Azure Authentication Secrets
+      # azure-client-id:
+      #   description: "Azure client ID for authentication. Required when cloud-provider is 'azure'."
+      #   required: false
+
+      # azure-tenant-id:
+      #   description: "Azure tenant ID for authentication. Required when cloud-provider is 'azure'."
+      #   required: false
+
+      # azure-subscription-id:
+      #   description: "Azure subscription ID for authentication. Required when cloud-provider is 'azure'."
+      #   required: false
+jobs:
+  terraform-destroy:
+    name: 🔥 Destroy - ${{ inputs.cloud-provider }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Print Inputs
+        run: |
+          echo "=== Workflow Inputs ==="
+          echo "Cloud Provider: ${{ inputs.cloud-provider }}"
+          echo "Backend Type: ${{ inputs.backend-type }}"
+          echo "AWS Region: ${{ inputs.aws-region }}"
+          echo "=== Workflow Secrets ==="
+          echo "TFC Token: ${{ secrets.tfc-token && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "AWS Role to Assume: ${{ secrets.aws-role-to-assume && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "======================="
