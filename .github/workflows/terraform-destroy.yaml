@@ -103,7 +103,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Terraform Destroy
-        uses: subhamay-bhattacharyya-gha/tf-destroy-action@feature/GHA-0026-add-multi-cloud-support
+        uses: subhamay-bhattacharyya-gha/tf-destroy-action@main
         with:
           cloud-provider: ${{ inputs.cloud-provider }}
           terraform-dir: infra/${{ inputs.cloud-provider }}/tf
