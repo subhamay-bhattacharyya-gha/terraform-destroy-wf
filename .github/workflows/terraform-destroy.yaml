@@ -126,3 +126,5 @@ jobs:
           tfc-token: ${{ secrets.tfc-token }}
           aws-region: ${{ inputs.aws-region }}
           aws-role-to-assume: ${{ secrets.aws-role-to-assume }}
+          gcp-wif-provider: ${{ secrets.gcp-wif-provider }}
+          gcp-service-account: ${{ secrets.gcp-service-account }}
