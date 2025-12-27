@@ -13,7 +13,6 @@ on:
         description: "Directory containing Terraform files"
         required: false
         type: string
-        default: "infra"
 
       # Backend Type Selection
       backend-type:
