@@ -8,6 +8,13 @@ on:
         required: true
         type: string
 
+      # Terraform Directory
+      terraform-dir:
+        description: "Directory containing Terraform files"
+        required: false
+        type: string
+        default: "infra"
+
       # Backend Type Selection
       backend-type:
         description: "Backend type to use: 's3' for AWS S3 or 'remote' for HCP Terraform Cloud."
@@ -44,13 +51,13 @@ on:
         required: false
 
       # GCP Authentication Secrets
-      # gcp-wif-provider:
-      #   description: "GCP Workload Identity Federation provider. Required when cloud-provider is 'gcp'."
-      #   required: false
+      gcp-wif-provider:
+        description: "GCP Workload Identity Federation provider. Required when cloud-provider is 'gcp'."
+        required: false
 
-      # gcp-service-account:
-      #   description: "GCP service account email for authentication. Required when cloud-provider is 'gcp'."
-      #   required: false
+      gcp-service-account:
+        description: "GCP service account email for authentication. Required when cloud-provider is 'gcp'."
+        required: false
 
       # # Azure Authentication Secrets
       # azure-client-id:
@@ -75,15 +82,16 @@ jobs:
         run: |
           echo "=== Workflow Inputs ==="
           echo "Cloud Provider: ${{ inputs.cloud-provider }}"
+          echo "Terraform Directory: ${{ inputs.terraform-dir }}"
           echo "Backend Type: ${{ inputs.backend-type }}"
-          echo "TFC Token: ${{ secrets.tfc-token && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "AWS Region: ${{ inputs.aws-region }}"
+          echo "S3 Bucket: ${{ inputs.s3-bucket }}"
+          echo "S3 Region: ${{ inputs.s3-region }}"
+          echo "=== Workflow Secrets ==="
+          echo "TFC Token: ${{ secrets.tfc-token && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "AWS Role to Assume: ${{ secrets.aws-role-to-assume && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "GCP WIF Provider: ${{ secrets.gcp-wif-provider && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "GCP Service Account: ${{ secrets.gcp-service-account && '[PROVIDED]' || '[NOT PROVIDED]' }}"
-          echo "Azure Client ID: ${{ secrets.azure-client-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
-          echo "Azure Tenant ID: ${{ secrets.azure-tenant-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
-          echo "Azure Subscription ID: ${{ secrets.azure-subscription-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "======================="
 
 
@@ -102,11 +110,18 @@ jobs:
           role-to-assume: ${{ secrets.aws-role-to-assume }}
           aws-region: ${{ inputs.aws-region }}
 
+      - name: Configure GCP credentials
+        if: inputs.cloud-provider == 'gcp'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.gcp-wif-provider }}
+          service_account: ${{ secrets.gcp-service-account }}
+
       - name: Terraform Destroy
         uses: subhamay-bhattacharyya-gha/tf-destroy-action@main
         with:
           cloud-provider: ${{ inputs.cloud-provider }}
-          terraform-dir: infra/${{ inputs.cloud-provider }}/tf
+          terraform-dir: ${{ inputs.terraform-dir }}
           backend-type: ${{ inputs.backend-type }}
           tfc-token: ${{ secrets.tfc-token }}
           aws-region: ${{ inputs.aws-region }}
