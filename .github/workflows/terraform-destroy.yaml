@@ -59,18 +59,18 @@ on:
         description: "GCP service account email for authentication. Required when cloud-provider is 'gcp'."
         required: false
 
-      # # Azure Authentication Secrets
-      # azure-client-id:
-      #   description: "Azure client ID for authentication. Required when cloud-provider is 'azure'."
-      #   required: false
+      # Azure Authentication Secrets
+      azure-client-id:
+        description: "Azure client ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
 
-      # azure-tenant-id:
-      #   description: "Azure tenant ID for authentication. Required when cloud-provider is 'azure'."
-      #   required: false
+      azure-tenant-id:
+        description: "Azure tenant ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
 
-      # azure-subscription-id:
-      #   description: "Azure subscription ID for authentication. Required when cloud-provider is 'azure'."
-      #   required: false
+      azure-subscription-id:
+        description: "Azure subscription ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
 
 jobs:
   terraform-destroy:
@@ -92,6 +92,9 @@ jobs:
           echo "AWS Role to Assume: ${{ secrets.aws-role-to-assume && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "GCP WIF Provider: ${{ secrets.gcp-wif-provider && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "GCP Service Account: ${{ secrets.gcp-service-account && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Client ID: ${{ secrets.azure-client-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Tenant ID: ${{ secrets.azure-tenant-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
+          echo "Azure Subscription ID: ${{ secrets.azure-subscription-id && '[PROVIDED]' || '[NOT PROVIDED]' }}"
           echo "======================="
 
 
@@ -117,6 +120,14 @@ jobs:
           workload_identity_provider: ${{ secrets.gcp-wif-provider }}
           service_account: ${{ secrets.gcp-service-account }}
 
+      - name: Configure Azure credentials
+        if: inputs.cloud-provider == 'azure'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.azure-client-id }}
+          tenant-id: ${{ secrets.azure-tenant-id }}
+          subscription-id: ${{ secrets.azure-subscription-id }}
+
       - name: Terraform Destroy
         uses: subhamay-bhattacharyya-gha/tf-destroy-action@main
         with:
@@ -128,3 +139,6 @@ jobs:
           aws-role-to-assume: ${{ secrets.aws-role-to-assume }}
           gcp-wif-provider: ${{ secrets.gcp-wif-provider }}
           gcp-service-account: ${{ secrets.gcp-service-account }}
+          azure-client-id: ${{ secrets.azure-client-id }}
+          azure-tenant-id: ${{ secrets.azure-tenant-id }}
+          azure-subscription-id: ${{ secrets.azure-subscription-id }}
