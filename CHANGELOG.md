@@ -1,3 +1,10 @@
+# 1.0.0 (2026-01-23)
+
+
+### Features
+
+* add Snowflake and Databricks support ([ea9cd73](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/commit/ea9cd73060135214a07af155441a25ffbb7934a0))
+
 ## [1.1.2](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/compare/v1.1.1...v1.1.2) (2025-05-21)
 
 
