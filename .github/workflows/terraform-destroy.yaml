@@ -1,0 +1,218 @@
+name: Terraform Multi-Cloud Destroy
+
+on:
+  workflow_call:
+    inputs:
+      # Cloud Provider Selection
+      cloud-provider:
+        description: "Cloud service provider for authentication: 'aws', 'gcp', 'azure', 'snowflake', or 'databricks'."
+        required: true
+        type: string
+      # Terraform Directory
+      terraform-dir:
+        description: "Directory containing Terraform files"
+        required: false
+        type: string
+        default: "tf"
+
+      # Backend Type Selection
+      backend-type:
+        description: "Backend type to use: 's3' for AWS S3 or 'remote' for HCP Terraform Cloud."
+        required: false
+        type: string
+        default: "s3"
+
+      # AWS Authentication Inputs
+      aws-region:
+        description: "AWS region for authentication. Required when cloud-provider is 'aws'."
+        required: false
+        type: string
+
+      # Snowflake Authentication Inputs
+      snowflake-account:
+        description: "Snowflake account identifier. Required when cloud-provider is 'snowflake'."
+        required: false
+        type: string
+
+      snowflake-user:
+        description: "Snowflake user name. Required when cloud-provider is 'snowflake'."
+        required: false
+        type: string
+
+      snowflake-role:
+        description: "Snowflake role name. Required when cloud-provider is 'snowflake'."
+        required: false
+        type: string
+
+      # S3 Backend Inputs (required when backend-type is 's3')
+      s3-bucket:
+        description: "S3 bucket name for Terraform state. Required when backend-type is 's3'."
+        required: false
+        type: string
+
+      s3-region:
+        description: "S3 bucket region for Terraform state. Required when backend-type is 's3'."
+        required: false
+        type: string
+
+      s3-key-prefix:
+        description: "Optional prefix for the S3 state key (AWS only)."
+        required: false
+        type: string
+        default: ""
+
+    secrets:
+      # HCP Terraform Cloud Secret
+      tfc-token:
+        description: "HCP Terraform Cloud API token. Required when backend-type is 'remote'."
+        required: false
+
+      # AWS Authentication Secret
+      aws-role-to-assume:
+        description: "AWS IAM role ARN to assume. Required when cloud-provider is 'aws'."
+        required: false
+
+      # GCP Authentication Secrets
+      gcp-wif-provider:
+        description: "GCP Workload Identity Federation provider. Required when cloud-provider is 'gcp'."
+        required: false
+
+      gcp-service-account:
+        description: "GCP service account email for authentication. Required when cloud-provider is 'gcp'."
+        required: false
+
+      # Azure Authentication Secrets
+      azure-client-id:
+        description: "Azure client ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
+
+      azure-tenant-id:
+        description: "Azure tenant ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
+
+      azure-subscription-id:
+        description: "Azure subscription ID for authentication. Required when cloud-provider is 'azure'."
+        required: false
+
+      # Snowflake Authentication Secret
+      snowflake-private-key:
+        description: "Snowflake private key for authentication. Required when cloud-provider is 'snowflake'."
+        required: false
+
+      # Databricks Authentication Secrets
+      databricks-host:
+        description: "Databricks workspace URL. Required when cloud-provider is 'databricks'."
+        required: false
+
+      databricks-token:
+        description: "Databricks personal access token. Required when cloud-provider is 'databricks'."
+        required: false
+
+jobs:
+  terraform-destroy:
+    name: 🔥 Destroy - ${{ inputs.cloud-provider }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 📋 Correct Step Sequence:
+      # 1. Debug - Print All Inputs
+      # 2. Validate Cloud Provider
+      # 3. Configure AWS credentials (if cloud-provider is 'aws')
+      # 4. Configure GCP credentials (if cloud-provider is 'gcp')
+      # 5. Configure Azure credentials (if cloud-provider is 'azure')
+      # 6. Terraform Destroy (delegates to tf-destroy-action)
+      #############################################
+      
+      # Print all inputs for debug
+      #############################################
+      - name: Debug - Print All Inputs
+        id: debug-inputs
+        shell: bash
+        run: |
+          echo "=== DEBUG: All Action Inputs ==="
+          echo "backend-type: ${{ inputs.backend-type }}"
+          echo "cloud-provider: ${{ inputs.cloud-provider }}"
+          echo "terraform-dir: ${{ inputs.terraform-dir }}"
+          echo ""
+          echo "=== AWS S3 Backend Inputs ==="
+          echo "s3-bucket: ${{ inputs.s3-bucket }}"
+          echo "s3-region: ${{ inputs.s3-region }}"
+          echo "s3-key-prefix: ${{ inputs.s3-key-prefix }}"
+          echo ""
+          echo "=== HCP Terraform Cloud Inputs ==="
+          echo "tfc-token: [REDACTED - $(if [[ -n '${{ secrets.tfc-token }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+          echo ""
+          echo "=== AWS Authentication Inputs ==="
+          echo "aws-region: ${{ inputs.aws-region }}"
+          echo "aws-role-to-assume: ${{ secrets.aws-role-to-assume }}"
+          echo ""
+          echo "=== GCP Authentication Inputs ==="
+          echo "gcp-wif-provider: ${{ secrets.gcp-wif-provider }}"
+          echo "gcp-service-account: ${{ secrets.gcp-service-account }}"
+          echo ""
+          echo "=== Azure Authentication Inputs ==="
+          echo "azure-client-id: ${{ secrets.azure-client-id }}"
+          echo "azure-tenant-id: ${{ secrets.azure-tenant-id }}"
+          echo "azure-subscription-id: ${{ secrets.azure-subscription-id }}"
+          echo ""
+          echo "=== Snowflake Authentication Inputs ==="
+          echo "snowflake-account: ${{ inputs.snowflake-account }}"
+          echo "snowflake-user: ${{ inputs.snowflake-user }}"
+          echo "snowflake-role: ${{ inputs.snowflake-role }}"
+          echo "snowflake-private-key: [REDACTED - $(if [[ -n '${{ secrets.snowflake-private-key }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+          echo ""
+          echo "=== Databricks Authentication Inputs ==="
+          echo "databricks-host: [REDACTED - $(if [[ -n '${{ secrets.databricks-host }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+          echo "databricks-token: [REDACTED - $(if [[ -n '${{ secrets.databricks-token }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+
+
+      - name: Validate Cloud Provider
+        run: |
+          if [[ "${{ inputs.cloud-provider }}" != "aws" && "${{ inputs.cloud-provider }}" != "gcp" && "${{ inputs.cloud-provider }}" != "azure" ]]; then
+            echo "Error: Invalid cloud provider '${{ inputs.cloud-provider }}'. Must be one of: aws, gcp, azure"
+            exit 1
+          fi
+          echo "Valid cloud provider: ${{ inputs.cloud-provider }}"
+
+      - name: Configure AWS credentials
+        if: inputs.cloud-provider == 'aws'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.aws-role-to-assume }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Configure GCP credentials
+        if: inputs.cloud-provider == 'gcp'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.gcp-wif-provider }}
+          service_account: ${{ secrets.gcp-service-account }}
+
+      - name: Configure Azure credentials
+        if: inputs.cloud-provider == 'azure'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.azure-client-id }}
+          tenant-id: ${{ secrets.azure-tenant-id }}
+          subscription-id: ${{ secrets.azure-subscription-id }}
+
+      - name: Terraform Destroy
+        uses: subhamay-bhattacharyya-gha/tf-destroy-action@main
+        with:
+          cloud-provider: ${{ inputs.cloud-provider }}
+          terraform-dir: ${{ inputs.terraform-dir }}
+          backend-type: ${{ inputs.backend-type }}
+          tfc-token: ${{ secrets.tfc-token }}
+          aws-region: ${{ inputs.aws-region }}
+          aws-role-to-assume: ${{ secrets.aws-role-to-assume }}
+          gcp-wif-provider: ${{ secrets.gcp-wif-provider }}
+          gcp-service-account: ${{ secrets.gcp-service-account }}
+          azure-client-id: ${{ secrets.azure-client-id }}
+          azure-tenant-id: ${{ secrets.azure-tenant-id }}
+          azure-subscription-id: ${{ secrets.azure-subscription-id }}
+          snowflake-account: ${{ inputs.snowflake-account }}
+          snowflake-user: ${{ inputs.snowflake-user }}
+          snowflake-role: ${{ inputs.snowflake-role }}
+          snowflake-private-key: ${{ secrets.snowflake-private-key }}
+          databricks-host: ${{ secrets.databricks-host }}
+          databricks-token: ${{ secrets.databricks-token }}
