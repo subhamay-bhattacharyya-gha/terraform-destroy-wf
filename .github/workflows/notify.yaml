@@ -1,5 +1,7 @@
 name: Trigger Slack Notification
 run-name: Trigger Slack Notification run by ${{ github.actor }} on ${{ github.ref_name }}
+permissions:
+  contents: read
 
 on:
   pull_request:
