@@ -11,9 +11,11 @@ This workflow provides a standardized approach to destroying Terraform infrastru
 ### Key Features
 
 - **Multi-Cloud Support**: AWS, Google Cloud Platform, Azure, Snowflake, and Databricks
+- **Platform Mode**: Destroy infrastructure across multiple cloud providers in a single workflow run
 - **Flexible Backend Configuration**: S3 and Terraform Cloud backends
 - **Secure Authentication**: OIDC/Workload Identity Federation for keyless authentication
 - **Input Validation**: Comprehensive validation of cloud provider and required parameters
+- **Concurrency Control**: Customizable concurrency groups to prevent conflicting runs
 - **Debug Output**: Detailed logging of inputs and configuration for troubleshooting
 
 ---
@@ -22,15 +24,17 @@ This workflow provides a standardized approach to destroying Terraform infrastru
 
 The workflow performs the following steps:
 
-1. **Debug Output**: Prints all input parameters and secrets (with sensitive values redacted) for troubleshooting
-2. **Cloud Provider Validation**: Validates that the cloud provider is one of: `aws`, `gcp`, or `azure` (Note: Snowflake and Databricks validation is handled by the underlying action)
-3. **Cloud Authentication**: Configures credentials based on the selected cloud provider:
+1. **Checkout Repository**: Clones the repository to access Terraform files and detect platform directories
+2. **Debug Output**: Prints all input parameters and secrets (with sensitive values redacted) for troubleshooting
+3. **Input Validation**: Validates backend-type, cloud-provider, and required parameters for the selected provider
+4. **Cloud Authentication**: Configures credentials based on the selected cloud provider:
    - **AWS**: Uses OIDC to assume an IAM role
    - **GCP**: Configures Workload Identity Federation
    - **Azure**: Authenticates using service principal with OIDC
    - **Snowflake**: Authentication is handled by the Terraform Destroy action
    - **Databricks**: Authentication is handled by the Terraform Destroy action
-4. **Terraform Destroy**: Executes the destroy operation using the `tf-destroy-action`
+   - **Platform**: Validates inputs for all detected cloud provider directories in `infra/`
+5. **Terraform Destroy**: Executes the destroy operation using the `tf-destroy-action`
 
 ---
 
@@ -43,8 +47,9 @@ The workflow performs the following steps:
 | **Azure** | Service Principal with OIDC | `azure-client-id`, `azure-tenant-id`, `azure-subscription-id` |
 | **Snowflake** | Private Key Authentication (via action) | `snowflake-private-key` |
 | **Databricks** | Personal Access Token (via action) | `databricks-host`, `databricks-token` |
+| **Platform** | Multi-cloud (validates based on detected `infra/` directories) | Varies by detected providers |
 
-**Note**: AWS, GCP, and Azure authentication is configured directly in the workflow. Snowflake and Databricks authentication is handled by the underlying `tf-destroy-action`.
+**Note**: AWS, GCP, and Azure authentication is configured directly in the workflow. Snowflake and Databricks authentication is handled by the underlying `tf-destroy-action`. Platform mode dynamically validates inputs based on which cloud provider directories exist in `infra/`.
 
 ---
 
@@ -52,7 +57,8 @@ The workflow performs the following steps:
 
 | Name | Description | Required | Default | Type |
 |------|-------------|----------|---------|------|
-| `cloud-provider` | Target cloud provider (`aws`, `gcp`, `azure`, `snowflake`, `databricks`) | Yes | — | string |
+| `concurrency-group` | Concurrency group name for workflow runs | No | Auto-generated | string |
+| `cloud-provider` | Target cloud provider (`aws`, `gcp`, `azure`, `snowflake`, `databricks`, `platform`) | Yes | — | string |
 | `terraform-dir` | Directory containing Terraform files | No | `tf` | string |
 | `backend-type` | Backend type (`s3` for AWS S3 or `remote` for Terraform Cloud) | No | `s3` | string |
 | `aws-region` | AWS region for authentication (required for AWS) | No | — | string |
@@ -219,6 +225,40 @@ jobs:
       databricks-token: ${{ secrets.DATABRICKS_TOKEN }}
 ```
 
+### Platform Mode (Multi-Cloud Destroy)
+
+Use `platform` as the cloud-provider to destroy infrastructure across multiple cloud providers. The workflow will detect which provider directories exist in `infra/` and validate the required inputs for each.
+
+```yaml
+name: Destroy Platform Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm-destroy:
+        description: 'Type "destroy" to confirm'
+        required: true
+
+jobs:
+  destroy-platform:
+    if: github.event.inputs.confirm-destroy == 'destroy'
+    uses: subhamay-bhattacharyya-gha/terraform-destroy-wf/.github/workflows/terraform-destroy.yaml@main
+    with:
+      cloud-provider: platform
+      terraform-dir: tf
+      backend-type: s3
+      aws-region: us-east-1
+      s3-bucket: my-terraform-state-bucket
+      s3-region: us-east-1
+    secrets:
+      aws-role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      gcp-wif-provider: ${{ secrets.GCP_WIF_PROVIDER }}
+      gcp-service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+      azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+      azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+```
+
 ### Multi-Environment Destroy
 
 ```yaml
@@ -247,6 +287,29 @@ jobs:
       s3-region: us-west-2
     secrets:
       aws-role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+```
+
+### Custom Concurrency Group
+
+```yaml
+name: Destroy with Custom Concurrency
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy-aws:
+    uses: subhamay-bhattacharyya-gha/terraform-destroy-wf/.github/workflows/terraform-destroy.yaml@main
+    with:
+      concurrency-group: "terraform-destroy-production"
+      cloud-provider: aws
+      terraform-dir: infra/aws/tf
+      backend-type: s3
+      aws-region: us-east-1
+      s3-bucket: my-terraform-state-bucket
+      s3-region: us-east-1
+    secrets:
+      aws-role-to-assume: ${{ secrets.AWS_DESTROY_ROLE_ARN }}
 ```
 
 ---
@@ -329,7 +392,7 @@ The workflow provides detailed debug output including:
 - Cloud provider validation (for AWS, GCP, Azure)
 - Authentication status for AWS, GCP, and Azure
 
-**Note**: The workflow validates only AWS, GCP, and Azure in the validation step. Snowflake and Databricks validation is delegated to the `tf-destroy-action`.
+**Note**: The workflow validates all cloud providers including Snowflake and Databricks. When using `platform` mode, validation is performed for each detected cloud provider directory in `infra/`.
 
 ---
 
