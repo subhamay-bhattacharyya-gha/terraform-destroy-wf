@@ -151,7 +151,7 @@ jobs:
           echo "=== DEBUG: Workflow Inputs ==="
           echo "backend-type: ${{ inputs.backend-type }}"
           echo "cloud-provider: ${{ inputs.cloud-provider }}"
-          echo "terraform-dir: infra/${{ inputs.cloud-provider }}/tf"
+          echo "tf-config-path: infra/${{ inputs.cloud-provider }}/${{ inputs.terraform-dir }}"
           echo ""
           echo "=== HCP Terraform Cloud Inputs ==="
           echo "tfc-token: [REDACTED - $(if [[ -n '${{ secrets.tfc-token }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
@@ -324,7 +324,7 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.snowflake-private-key }}
         with:
           cloud-provider: ${{ inputs.cloud-provider }}
-          terraform-dir: ${{ inputs.terraform-dir }}
+          tf-config-path: infra/${{ inputs.cloud-provider }}/${{ inputs.terraform-dir }}
           backend-type: ${{ inputs.backend-type }}
           s3-bucket: ${{ inputs.s3-bucket }}
           s3-region: ${{ inputs.s3-region }}
@@ -337,5 +337,4 @@ jobs:
           azure-client-id: ${{ secrets.azure-client-id }}
           azure-tenant-id: ${{ secrets.azure-tenant-id }}
           azure-subscription-id: ${{ secrets.azure-subscription-id }}
-          databricks-host: ${{ secrets.databricks-host }}
-          databricks-token: ${{ secrets.databricks-token }}
+
