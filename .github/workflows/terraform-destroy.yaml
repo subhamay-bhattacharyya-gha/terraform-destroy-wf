@@ -15,12 +15,6 @@ on:
         description: "Target cloud provider or platform (aws, gcp, azure, snowflake, databricks, platform)"
         required: true
         type: string
-      # Terraform Directory
-      terraform-dir:
-        description: "Directory containing Terraform files"
-        required: false
-        type: string
-        default: "tf"
 
       # Backend Type Selection
       backend-type:
@@ -151,7 +145,7 @@ jobs:
           echo "=== DEBUG: Workflow Inputs ==="
           echo "backend-type: ${{ inputs.backend-type }}"
           echo "cloud-provider: ${{ inputs.cloud-provider }}"
-          echo "tf-config-path: infra/${{ inputs.cloud-provider }}/${{ inputs.terraform-dir }}"
+          echo "tf-config-path: infra/${{ inputs.cloud-provider }}/tf"
           echo ""
           echo "=== HCP Terraform Cloud Inputs ==="
           echo "tfc-token: [REDACTED - $(if [[ -n '${{ secrets.tfc-token }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
@@ -324,7 +318,7 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.snowflake-private-key }}
         with:
           cloud-provider: ${{ inputs.cloud-provider }}
-          tf-config-path: infra/${{ inputs.cloud-provider }}/${{ inputs.terraform-dir }}
+          tf-config-path: infra/${{ inputs.cloud-provider }}/tf
           backend-type: ${{ inputs.backend-type }}
           s3-bucket: ${{ inputs.s3-bucket }}
           s3-region: ${{ inputs.s3-region }}
