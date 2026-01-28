@@ -53,8 +53,13 @@ on:
         type: string
 
       # Snowflake Authentication Inputs
-      snowflake-account:
-        description: "Snowflake account identifier. Required when cloud-provider is 'snowflake'."
+      snowflake-organization-name:
+        description: "Snowflake organization name. Required when cloud-provider is 'snowflake'."
+        required: false
+        type: string
+
+      snowflake-account-name:
+        description: "Snowflake account name within the organization. Required when cloud-provider is 'snowflake'."
         required: false
         type: string
 
@@ -165,7 +170,8 @@ jobs:
           echo "azure-subscription-id: [REDACTED - $(if [[ -n '${{ secrets.azure-subscription-id }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
           echo ""
           echo "=== Snowflake Authentication Inputs ==="
-          echo "snowflake-account: [REDACTED - $(if [[ -n '${{ inputs.snowflake-account }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+          echo "snowflake-organization-name: [REDACTED - $(if [[ -n '${{ inputs.snowflake-organization-name }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
+          echo "snowflake-account-name: [REDACTED - $(if [[ -n '${{ inputs.snowflake-account-name }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
           echo "snowflake-user: [REDACTED - $(if [[ -n '${{ inputs.snowflake-user }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
           echo "snowflake-role: [REDACTED - $(if [[ -n '${{ inputs.snowflake-role }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
           echo "snowflake-private-key: [REDACTED - $(if [[ -n '${{ secrets.snowflake-private-key }}' ]]; then echo 'PROVIDED'; else echo 'NOT PROVIDED'; fi)]"
@@ -230,8 +236,8 @@ jobs:
               fi
               ;;
             "snowflake")
-              if [[ -z "${{ inputs.snowflake-account }}" || -z "${{ inputs.snowflake-user }}" || -z "${{ inputs.snowflake-role }}" || -z "${{ secrets.snowflake-private-key }}" ]]; then
-                echo "Error: snowflake-account, snowflake-user, snowflake-role, and snowflake-private-key are required when cloud-provider is 'snowflake'"
+              if [[ -z "${{ inputs.snowflake-organization-name }}" || -z "${{ inputs.snowflake-account-name }}" || -z "${{ inputs.snowflake-user }}" || -z "${{ inputs.snowflake-role }}" || -z "${{ secrets.snowflake-private-key }}" ]]; then
+                echo "Error: snowflake-organization-name, snowflake-account-name, snowflake-user, snowflake-role, and snowflake-private-key are required when cloud-provider is 'snowflake'"
                 exit 1
               fi
               ;;
@@ -278,8 +284,8 @@ jobs:
               # Check for Snowflake directory
               if [[ -d "infra/snowflake" ]]; then
                 echo "Found infra/snowflake directory - validating Snowflake inputs..."
-                if [[ -z "${{ inputs.snowflake-account }}" || -z "${{ inputs.snowflake-user }}" || -z "${{ inputs.snowflake-role }}" || -z "${{ secrets.snowflake-private-key }}" ]]; then
-                  VALIDATION_ERRORS="${VALIDATION_ERRORS}\n- Snowflake: snowflake-account, snowflake-user, snowflake-role, and snowflake-private-key are required"
+                if [[ -z "${{ inputs.snowflake-organization-name }}" || -z "${{ inputs.snowflake-account-name }}" || -z "${{ inputs.snowflake-user }}" || -z "${{ inputs.snowflake-role }}" || -z "${{ secrets.snowflake-private-key }}" ]]; then
+                  VALIDATION_ERRORS="${VALIDATION_ERRORS}\n- Snowflake: snowflake-organization-name, snowflake-account-name, snowflake-user, snowflake-role, and snowflake-private-key are required"
                 else
                   echo "  ✅ Snowflake inputs validated"
                 fi
@@ -311,7 +317,8 @@ jobs:
         env:
           DATABRICKS_HOST: ${{ secrets.databricks-host }}
           DATABRICKS_TOKEN: ${{ secrets.databricks-token }}
-          SNOWFLAKE_ACCOUNT: ${{ inputs.snowflake-account }}
+          SNOWFLAKE_ORGANIZATION_NAME: ${{ inputs.snowflake-organization-name }}
+          SNOWFLAKE_ACCOUNT_NAME: ${{ inputs.snowflake-account-name }}
           SNOWFLAKE_USER: ${{ inputs.snowflake-user }}
           SNOWFLAKE_ROLE: ${{ inputs.snowflake-role }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.snowflake-private-key }}
@@ -330,9 +337,5 @@ jobs:
           azure-client-id: ${{ secrets.azure-client-id }}
           azure-tenant-id: ${{ secrets.azure-tenant-id }}
           azure-subscription-id: ${{ secrets.azure-subscription-id }}
-          snowflake-account: ${{ inputs.snowflake-account }}
-          snowflake-user: ${{ inputs.snowflake-user }}
-          snowflake-role: ${{ inputs.snowflake-role }}
-          snowflake-private-key: ${{ secrets.snowflake-private-key }}
           databricks-host: ${{ secrets.databricks-host }}
           databricks-token: ${{ secrets.databricks-token }}

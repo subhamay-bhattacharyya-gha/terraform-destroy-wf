@@ -65,7 +65,8 @@ The workflow performs the following steps:
 | `s3-bucket` | S3 bucket name for Terraform state (required for S3 backend) | No | — | string |
 | `s3-region` | S3 bucket region for Terraform state (required for S3 backend) | No | — | string |
 | `s3-key-prefix` | Optional prefix for the S3 state key (AWS only) | No | `""` | string |
-| `snowflake-account` | Snowflake account identifier (required for Snowflake) | No | — | string |
+| `snowflake-organization-name` | Snowflake organization name (required for Snowflake) | No | — | string |
+| `snowflake-account-name` | Snowflake account name within the organization (required for Snowflake) | No | — | string |
 | `snowflake-user` | Snowflake user name (required for Snowflake) | No | — | string |
 | `snowflake-role` | Snowflake role name (required for Snowflake) | No | — | string |
 
@@ -193,7 +194,8 @@ jobs:
       backend-type: s3
       s3-bucket: my-terraform-state-bucket
       s3-region: us-east-1
-      snowflake-account: my-account
+      snowflake-organization-name: my-org
+      snowflake-account-name: my-account
       snowflake-user: terraform-user
       snowflake-role: TERRAFORM_ROLE
     secrets:
