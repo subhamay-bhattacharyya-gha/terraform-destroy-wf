@@ -306,6 +306,28 @@ jobs:
               ;;
           esac
 
+      - name: Set Snowflake Private Key
+        run: |
+          printf '%b' "${{ secrets.snowflake-private-key }}" > /tmp/snowflake_key.p8
+          echo "SNOWFLAKE_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          cat /tmp/snowflake_key.p8 >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Debug Key Format
+        run: |
+          echo "First 50 chars of key:"
+          echo "${SNOWFLAKE_PRIVATE_KEY:0:50}"
+          echo "---"
+          echo "Key contains literal backslash-n: "
+          if [[ "$SNOWFLAKE_PRIVATE_KEY" == *'\\n'* ]]; then
+            echo "YES - problem found"
+          else
+            echo "NO"
+          fi
+          echo "---"
+          echo "Line count:"
+          echo "$SNOWFLAKE_PRIVATE_KEY" | wc -l
+          
       - name: Terraform Destroy
         uses: subhamay-bhattacharyya-gha/tf-destroy-action@feature/GHA-0032-add-platform-based-multi
         env:
