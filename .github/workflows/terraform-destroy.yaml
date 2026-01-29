@@ -327,7 +327,7 @@ jobs:
           echo "---"
           echo "Line count:"
           echo "$SNOWFLAKE_PRIVATE_KEY" | wc -l
-          
+
       - name: Terraform Destroy
         uses: subhamay-bhattacharyya-gha/tf-destroy-action@feature/GHA-0032-add-platform-based-multi
         env:
@@ -337,7 +337,7 @@ jobs:
           SNOWFLAKE_ACCOUNT_NAME: ${{ inputs.snowflake-account-name }}
           SNOWFLAKE_USER: ${{ inputs.snowflake-user }}
           SNOWFLAKE_ROLE: ${{ inputs.snowflake-role }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.snowflake-private-key }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ env.SNOWFLAKE_PRIVATE_KEY }}
         with:
           cloud-provider: ${{ inputs.cloud-provider }}
           tf-config-path: infra/${{ inputs.cloud-provider }}/tf
