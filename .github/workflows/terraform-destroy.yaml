@@ -190,7 +190,7 @@ jobs:
 
       - name: Configure Azure credentials
         if: inputs.cloud-provider == 'azure'
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.azure-client-id }}
           tenant-id: ${{ secrets.azure-tenant-id }}
