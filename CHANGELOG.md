@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/compare/v1.0.2...v1.1.0) (2026-06-16)
+
+
+### Features
+
+* **terraform-destroy:** refactor Snowflake authentication to use organization and account names ([a514225](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/commit/a51422511ef946d8ca4acbac78ba0a5a4608e854))
+
 ## [1.0.2](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/compare/v1.0.1...v1.0.2) (2026-06-16)
 
 
