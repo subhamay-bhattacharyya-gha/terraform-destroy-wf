@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/compare/v1.0.0...v1.0.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **notify:** skip Slack notification for dependabot PRs to prevent secret-access failure ([c4fafc0](https://github.com/subhamay-bhattacharyya-gha/terraform-destroy-wf/commit/c4fafc0dbf527d210a0a66f694bf2c5ccec2c28f))
+
 # 1.0.0 (2026-01-23)
 
 
