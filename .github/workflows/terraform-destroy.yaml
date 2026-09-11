@@ -136,7 +136,7 @@ jobs:
       # Print all inputs for debug
       #############################################
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Debug - Print All Inputs
         id: debug-inputs
